@@ -429,8 +429,6 @@ Use this script to record a compelling demo:
 - [x] Source code files (.py, .js, .ts, .rs, .go, etc.)
 - [x] Markdown with frontmatter parsing
 
-**Status:** ✅ Complete (Backend + Frontend) | See [V1.5_IMPLEMENTATION.md](V1.5_IMPLEMENTATION.md) and [V1.5_FRONTEND.md](V1.5_FRONTEND.md)
-
 ---
 
 ### v2.0 — Multimodal & Intelligence _(Target: +14 weeks)_
