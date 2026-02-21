@@ -1,0 +1,38 @@
+# Dependencies
+node_modules/
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Build output
+dist/
+target/
+build/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Environment
+.env
+.env.local
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Data (user data should not be committed)
+*.db
+*.db-journal
+*.db-wal
+chroma/
+
+# Logs
+*.log
+
+# Tauri
+src-tauri/target/
