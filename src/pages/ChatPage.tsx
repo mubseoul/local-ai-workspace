@@ -1,8 +1,9 @@
-import { useEffect, useRef } from "react";
-import { Bot, AlertTriangle } from "lucide-react";
+import { useEffect, useRef, useState, useCallback } from "react";
+import { Bot, AlertTriangle, ArrowDown } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import { ChatMessage } from "../components/ChatMessage";
 import { ChatInput } from "../components/ChatInput";
+import { ChatSkeleton } from "../components/Skeleton";
 import { useChat } from "../hooks/useChat";
 import { useOllama } from "../hooks/useOllama";
 import { useAppStore } from "../store/appStore";
@@ -11,11 +12,42 @@ export function ChatPage() {
   const { messages, isStreaming, streamingContent, send, error } = useChat();
   const { isRunning } = useOllama();
   const { chatMode, activeWorkspace, activeConversation, clearError } = useAppStore();
+
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
+  const [userScrolledUp, setUserScrolledUp] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  const isNearBottom = useCallback(() => {
+    const el = scrollContainerRef.current;
+    if (!el) return true;
+    return el.scrollHeight - el.scrollTop - el.clientHeight < 100;
+  }, []);
+
+  const scrollToBottom = useCallback(() => {
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    setUserScrolledUp(false);
+  }, []);
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, streamingContent]);
+    if (!userScrolledUp) {
+      bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [messages, streamingContent, userScrolledUp]);
+
+  const handleScroll = useCallback(() => {
+    if (isStreaming) {
+      setUserScrolledUp(!isNearBottom());
+    }
+  }, [isStreaming, isNearBottom]);
+
+  useEffect(() => {
+    if (activeConversation) {
+      setLoading(true);
+      const t = setTimeout(() => setLoading(false), 300);
+      return () => clearTimeout(t);
+    }
+  }, [activeConversation?.id]);
 
   if (!isRunning) {
     return (
@@ -40,30 +72,36 @@ export function ChatPage() {
     );
   }
 
-  const showEmptyState = messages.length === 0 && !isStreaming;
+  const showEmptyState = messages.length === 0 && !isStreaming && !loading;
 
   return (
     <div className="flex-1 flex flex-col h-full">
       {/* Header */}
-      <div className="flex items-center justify-between px-6 py-3 border-b border-surface-700 bg-surface-900/50">
-        <div className="flex items-center gap-3">
-          <h1 className="text-sm font-medium text-surface-200">
+      <div className="flex items-center justify-between px-4 sm:px-6 py-3 border-b border-surface-700 bg-surface-900/50">
+        <div className="flex items-center gap-3 min-w-0">
+          <h1 className="text-sm font-medium text-surface-200 truncate">
             {activeConversation?.title || "New Chat"}
           </h1>
           {chatMode === "workspace" && activeWorkspace && (
-            <span className="text-xs px-2 py-0.5 bg-accent/10 text-accent-light rounded-full">
+            <span className="text-xs px-2 py-0.5 bg-accent/10 text-accent-light rounded-full flex-shrink-0">
               {activeWorkspace.name}
             </span>
           )}
         </div>
-        <div className="flex items-center gap-2 text-xs text-surface-500">
+        <div className="flex items-center gap-2 text-xs text-surface-500 flex-shrink-0">
           <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-          {chatMode === "workspace" ? "Workspace RAG" : "General Chat"}
+          <span className="hidden sm:inline">{chatMode === "workspace" ? "Workspace RAG" : "General Chat"}</span>
         </div>
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto">
+      <div
+        ref={scrollContainerRef}
+        onScroll={handleScroll}
+        className="flex-1 overflow-y-auto relative"
+      >
+        {loading && <ChatSkeleton />}
+
         {showEmptyState && (
           <div className="flex items-center justify-center h-full">
             <div className="text-center max-w-md space-y-4 px-4">
@@ -87,7 +125,6 @@ export function ChatPage() {
             <ChatMessage key={msg.id} message={msg} />
           ))}
 
-          {/* Streaming message */}
           {isStreaming && streamingContent && (
             <div className="flex gap-4 px-4 py-6">
               <div className="flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center bg-emerald-500/20 text-emerald-400">
@@ -104,6 +141,16 @@ export function ChatPage() {
           )}
           <div ref={bottomRef} />
         </div>
+
+        {/* Scroll-to-bottom fab */}
+        {userScrolledUp && isStreaming && (
+          <button
+            onClick={scrollToBottom}
+            className="absolute bottom-4 right-4 p-2.5 bg-surface-700 border border-surface-600 rounded-full shadow-lg hover:bg-surface-600 transition-colors"
+          >
+            <ArrowDown size={16} className="text-surface-300" />
+          </button>
+        )}
       </div>
 
       {/* Error */}

@@ -1,5 +1,8 @@
+import { useState } from "react";
 import { FolderOpen } from "lucide-react";
 import { DocumentList } from "../components/DocumentList";
+import { ConfirmDialog } from "../components/ConfirmDialog";
+import { toast } from "../components/Toast";
 import { useWorkspace } from "../hooks/useWorkspace";
 
 export function DocumentsPage() {
@@ -13,6 +16,28 @@ export function DocumentsPage() {
     setActiveWorkspace,
     createWorkspace,
   } = useWorkspace();
+
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
+
+  const handleUpload = async (file: File) => {
+    try {
+      await uploadFile(file);
+      toast.success(`"${file.name}" ingested successfully`);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Upload failed");
+    }
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteTarget) return;
+    try {
+      await deleteDocument(deleteTarget.id);
+      toast.success(`"${deleteTarget.name}" removed`);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Delete failed");
+    }
+    setDeleteTarget(null);
+  };
 
   if (!activeWorkspace) {
     return (
@@ -40,21 +65,36 @@ export function DocumentsPage() {
   }
 
   return (
-    <div className="flex-1 overflow-y-auto">
-      <div className="max-w-2xl mx-auto p-8">
-        <div className="mb-6">
-          <h1 className="text-xl font-semibold text-surface-100">Documents</h1>
-          <p className="text-sm text-surface-400 mt-1">
-            Workspace: <span className="text-accent-light">{activeWorkspace.name}</span>
-          </p>
+    <>
+      <div className="flex-1 overflow-y-auto">
+        <div className="max-w-2xl mx-auto p-4 sm:p-8">
+          <div className="mb-6">
+            <h1 className="text-xl font-semibold text-surface-100">Documents</h1>
+            <p className="text-sm text-surface-400 mt-1">
+              Workspace: <span className="text-accent-light">{activeWorkspace.name}</span>
+            </p>
+          </div>
+          <DocumentList
+            documents={documents}
+            uploading={uploading}
+            onUpload={handleUpload}
+            onDelete={(docId) => {
+              const doc = documents.find((d) => d.id === docId);
+              setDeleteTarget({ id: docId, name: doc?.filename || "this document" });
+            }}
+          />
         </div>
-        <DocumentList
-          documents={documents}
-          uploading={uploading}
-          onUpload={uploadFile}
-          onDelete={deleteDocument}
-        />
       </div>
-    </div>
+
+      <ConfirmDialog
+        open={!!deleteTarget}
+        title="Delete Document"
+        message={`Are you sure you want to delete "${deleteTarget?.name}"? The document and its embeddings will be permanently removed from this workspace.`}
+        confirmLabel="Delete"
+        variant="danger"
+        onConfirm={confirmDelete}
+        onCancel={() => setDeleteTarget(null)}
+      />
+    </>
   );
 }

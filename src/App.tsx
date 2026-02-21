@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { useAppStore } from "./store/appStore";
 import { Sidebar } from "./components/Sidebar";
+import { ErrorBoundary } from "./components/ErrorBoundary";
+import { ToastContainer } from "./components/Toast";
 import { ChatPage } from "./pages/ChatPage";
 import { DocumentsPage } from "./pages/DocumentsPage";
 import { WorkspacesPage } from "./pages/WorkspacesPage";
@@ -41,25 +43,44 @@ export default function App() {
 
   if (showOnboarding) {
     return (
-      <OnboardingPage
-        onComplete={() => {
-          localStorage.setItem("law_onboarding_done", "true");
-          setShowOnboarding(false);
-        }}
-      />
+      <ErrorBoundary fallbackMessage="Onboarding encountered an error.">
+        <OnboardingPage
+          onComplete={() => {
+            localStorage.setItem("law_onboarding_done", "true");
+            setShowOnboarding(false);
+          }}
+        />
+        <ToastContainer />
+      </ErrorBoundary>
     );
   }
 
   const renderPage = () => {
     switch (page) {
       case "chat":
-        return <ChatPage />;
+        return (
+          <ErrorBoundary fallbackMessage="Chat encountered an error. Try starting a new conversation.">
+            <ChatPage />
+          </ErrorBoundary>
+        );
       case "documents":
-        return <DocumentsPage />;
+        return (
+          <ErrorBoundary fallbackMessage="Document manager encountered an error.">
+            <DocumentsPage />
+          </ErrorBoundary>
+        );
       case "workspaces":
-        return <WorkspacesPage onNavigate={(p) => setPage(p as Page)} />;
+        return (
+          <ErrorBoundary fallbackMessage="Workspace manager encountered an error.">
+            <WorkspacesPage onNavigate={(p) => setPage(p as Page)} />
+          </ErrorBoundary>
+        );
       case "settings":
-        return <SettingsPage />;
+        return (
+          <ErrorBoundary fallbackMessage="Settings page encountered an error.">
+            <SettingsPage />
+          </ErrorBoundary>
+        );
       default:
         return <ChatPage />;
     }
@@ -67,8 +88,11 @@ export default function App() {
 
   return (
     <div className="h-screen flex bg-surface-950">
-      <Sidebar currentPage={page} onNavigate={(p) => setPage(p as Page)} />
+      <ErrorBoundary fallbackMessage="Sidebar encountered an error.">
+        <Sidebar currentPage={page} onNavigate={(p) => setPage(p as Page)} />
+      </ErrorBoundary>
       <main className="flex-1 flex flex-col min-w-0">{renderPage()}</main>
+      <ToastContainer />
     </div>
   );
 }

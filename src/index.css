@@ -58,6 +58,31 @@ body,
   }
 }
 
+/* Responsive: collapse sidebar at narrow widths */
+@media (max-width: 768px) {
+  aside {
+    position: fixed;
+    z-index: 40;
+    height: 100vh;
+  }
+}
+
+/* Animate dialog entry */
+@keyframes fadeInScale {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-in {
+  animation: fadeInScale 0.15s ease-out;
+}
+
 /* Prose overrides for markdown rendering */
 .prose pre {
   @apply rounded-lg;

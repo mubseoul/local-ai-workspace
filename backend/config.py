@@ -15,6 +15,9 @@ class Settings(BaseSettings):
     context_window: int = 4096
     max_file_size_mb: int = 100
     api_timeout: int = 120
+    retry_attempts: int = 3
+    retry_backoff: float = 1.0
+    debug: bool = False
 
     model_config = {"env_file": ".env", "env_prefix": "LAW_"}
 

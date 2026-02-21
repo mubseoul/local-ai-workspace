@@ -322,7 +322,7 @@ Use this script to record a compelling demo:
 
 ## Roadmap
 
-### MVP (v0.1) — Current Release
+### MVP (v0.1) — Released
 - [x] Chat with local LLMs via Ollama
 - [x] Document ingestion (PDF, TXT, MD, DOCX)
 - [x] RAG with source citations (file + page + relevance)
@@ -339,22 +339,22 @@ Use this script to record a compelling demo:
 
 ---
 
-### v0.2 — Stability & Polish _(Target: +2 weeks)_
+### v0.2 — Stability & Polish — Current Release
 
 **Goal**: Make the MVP rock-solid and production-ready for daily use.
 
-- [ ] Error boundaries in all React pages (graceful crash recovery)
-- [ ] Backend health check endpoint with Ollama + DB status
-- [ ] Retry logic for Ollama calls (3 retries with exponential backoff)
-- [ ] Loading skeletons for conversations, documents, settings
-- [ ] Toast notification system (success/error/info)
-- [ ] Confirmation dialogs for destructive actions (delete workspace, doc, conversation)
-- [ ] Responsive layout for smaller windows (min 900px graceful)
-- [ ] Auto-scroll lock/unlock during streaming (don't hijack user scroll)
-- [ ] Backend request validation + consistent error response format
-- [ ] Comprehensive logging with log rotation
-- [ ] CI pipeline: lint + type-check on PR (GitHub Actions)
-- [ ] Unit tests for chunking, text extraction, and vector store
+- [x] Error boundaries in all React pages (graceful crash recovery)
+- [x] Backend health check endpoint with Ollama + DB status
+- [x] Retry logic for Ollama calls (3 retries with exponential backoff)
+- [x] Loading skeletons for conversations, documents, settings
+- [x] Toast notification system (success/error/info)
+- [x] Confirmation dialogs for destructive actions (delete workspace, doc, conversation)
+- [x] Responsive layout for smaller windows (min 900px graceful)
+- [x] Auto-scroll lock/unlock during streaming (don't hijack user scroll)
+- [x] Backend request validation + consistent error response format
+- [x] Comprehensive logging with log rotation
+- [x] CI pipeline: lint + type-check on PR (GitHub Actions)
+- [x] Unit tests for chunking, text extraction, and vector store
 
 ---
 
