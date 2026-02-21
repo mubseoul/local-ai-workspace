@@ -322,32 +322,281 @@ Use this script to record a compelling demo:
 
 ## Roadmap
 
-### MVP (v0.1) — Current
+### MVP (v0.1) — Current Release
 - [x] Chat with local LLMs via Ollama
 - [x] Document ingestion (PDF, TXT, MD, DOCX)
-- [x] RAG with source citations
-- [x] Multi-workspace support
-- [x] Streaming responses
-- [x] Onboarding wizard
-- [x] Settings panel
-- [x] SQLite conversation persistence
-- [x] ChromaDB vector storage
+- [x] RAG with source citations (file + page + relevance)
+- [x] Multi-workspace support with isolated vector indices
+- [x] Streaming responses with markdown rendering
+- [x] Guided onboarding wizard with Ollama detection
+- [x] Settings panel (model, temperature, top-K, chunk size)
+- [x] SQLite conversation persistence (WAL mode)
+- [x] ChromaDB vector storage (cosine similarity)
+- [x] File deduplication by SHA-256 hash
+- [x] System prompt editor per conversation
+- [x] General Chat vs. Workspace Chat mode toggle
+- [x] MIT license + GitHub issue templates
 
-### v1.1 — Enhanced UX
-- [ ] Light/dark theme toggle
-- [ ] Keyboard shortcuts (Ctrl+N new chat, Ctrl+K command palette)
-- [ ] Markdown export of chat history
-- [ ] Prompt templates library
-- [ ] Folder watch (auto-ingest new/changed files)
-- [ ] Conversation search
+---
 
-### v2.0 — Power Features
-- [ ] Multiple file format support (EPUB, HTML, CSV, code files)
-- [ ] Image understanding (with multimodal models)
-- [ ] Voice input/output
-- [ ] Plugin system for custom tools
-- [ ] Collaborative workspaces (local network sharing)
-- [ ] Model fine-tuning interface
+### v0.2 — Stability & Polish _(Target: +2 weeks)_
+
+**Goal**: Make the MVP rock-solid and production-ready for daily use.
+
+- [ ] Error boundaries in all React pages (graceful crash recovery)
+- [ ] Backend health check endpoint with Ollama + DB status
+- [ ] Retry logic for Ollama calls (3 retries with exponential backoff)
+- [ ] Loading skeletons for conversations, documents, settings
+- [ ] Toast notification system (success/error/info)
+- [ ] Confirmation dialogs for destructive actions (delete workspace, doc, conversation)
+- [ ] Responsive layout for smaller windows (min 900px graceful)
+- [ ] Auto-scroll lock/unlock during streaming (don't hijack user scroll)
+- [ ] Backend request validation + consistent error response format
+- [ ] Comprehensive logging with log rotation
+- [ ] CI pipeline: lint + type-check on PR (GitHub Actions)
+- [ ] Unit tests for chunking, text extraction, and vector store
+
+---
+
+### v1.0 — Enhanced UX _(Target: +4 weeks)_
+
+**Goal**: A polished daily-driver experience with quality-of-life features.
+
+#### Theming & Appearance
+- [ ] Light / dark theme toggle with system preference detection
+- [ ] Persist theme choice in settings
+- [ ] Smooth theme transitions
+
+#### Keyboard Shortcuts
+- [ ] `Ctrl/Cmd + N` — New conversation
+- [ ] `Ctrl/Cmd + K` — Command palette (search conversations, switch workspace, navigate)
+- [ ] `Ctrl/Cmd + Shift + S` — Toggle sidebar
+- [ ] `Ctrl/Cmd + /` — Focus chat input
+- [ ] `Escape` — Close modals/dropdowns
+- [ ] Shortcut help overlay (`Ctrl/Cmd + ?`)
+
+#### Chat Enhancements
+- [ ] Edit sent messages (re-send with modification)
+- [ ] Regenerate last assistant response
+- [ ] Copy message to clipboard (one-click)
+- [ ] Markdown export of full conversation
+- [ ] Conversation search (full-text across all chats)
+- [ ] Pin important conversations to top
+- [ ] Conversation folders/tags for organization
+
+#### Document Management
+- [ ] Folder watch mode (auto-ingest new/changed files in a directory)
+- [ ] Re-ingest button per document (if you change chunk settings)
+- [ ] Document preview (show extracted text before ingesting)
+- [ ] Batch upload progress bar
+- [ ] File type icons in document list
+
+#### Prompt Templates
+- [ ] Built-in template library (summarize, explain, compare, extract)
+- [ ] Custom user templates with variables (`{{document}}`, `{{question}}`)
+- [ ] Quick-insert from chat input
+- [ ] Import/export templates as JSON
+
+---
+
+### v1.5 — Advanced RAG _(Target: +8 weeks)_
+
+**Goal**: Smarter retrieval and better answers from documents.
+
+#### Retrieval Improvements
+- [ ] Hybrid search: vector similarity + BM25 keyword search
+- [ ] Re-ranking with cross-encoder (local model)
+- [ ] Recursive retrieval: if first pass is low-confidence, expand search
+- [ ] Chunk metadata enrichment (headings, section titles, table of contents)
+- [ ] Configurable retrieval strategy per workspace
+
+#### Chunking Improvements
+- [ ] Semantic chunking (split by topic/meaning, not just size)
+- [ ] Table-aware chunking for PDFs (don't split tables)
+- [ ] Hierarchical chunks (parent-child for context expansion)
+- [ ] Chunk quality scoring (skip low-signal chunks like headers-only)
+
+#### Citation & Transparency
+- [ ] Inline citations in response text (clickable `[1]` links)
+- [ ] "Show retrieved context" debug view (see exactly what the model received)
+- [ ] Confidence indicator per answer (based on retrieval scores)
+- [ ] Source highlighting: click citation → show original text highlighted in document
+
+#### New File Formats
+- [ ] EPUB (e-books)
+- [ ] HTML (web pages, saved articles)
+- [ ] CSV / Excel (structured data with column awareness)
+- [ ] Source code files (.py, .js, .ts, .rs, .go, etc.)
+- [ ] Markdown with frontmatter parsing
+
+---
+
+### v2.0 — Multimodal & Intelligence _(Target: +14 weeks)_
+
+**Goal**: Go beyond text — images, voice, and smarter AI interactions.
+
+#### Multimodal Support
+- [ ] Image understanding via multimodal models (LLaVA, Llama 3.2 Vision)
+- [ ] Drag-and-drop images into chat
+- [ ] OCR for scanned PDFs (Tesseract integration, runs locally)
+- [ ] Image extraction from documents (figures, charts, diagrams)
+- [ ] Describe/summarize images in workspace context
+
+#### Voice
+- [ ] Voice input via local Whisper model (speech-to-text)
+- [ ] Voice output via local TTS model (text-to-speech)
+- [ ] Push-to-talk mode
+- [ ] Transcribe audio files and add to workspace
+
+#### Smart Features
+- [ ] Auto-title conversations using LLM summary
+- [ ] Suggested follow-up questions after each response
+- [ ] Document summarization (one-click summary of any uploaded file)
+- [ ] Compare documents ("What are the differences between doc A and doc B?")
+- [ ] Timeline/changelog view for workspace (what was added/changed when)
+
+#### Model Management
+- [ ] In-app model browser (browse Ollama library, one-click pull)
+- [ ] Model download progress indicator
+- [ ] Model benchmarking (test speed on your hardware)
+- [ ] Per-workspace model override (use different models for different projects)
+- [ ] Model memory/VRAM usage display
+
+---
+
+### v2.5 — Agents & Tools _(Target: +20 weeks)_
+
+**Goal**: Let the AI take actions, not just answer questions.
+
+#### Agent Framework
+- [ ] Tool-calling support (models that support function calling)
+- [ ] Built-in tools: calculator, date/time, web search (optional, user-enabled)
+- [ ] Code execution sandbox (run Python/JS snippets locally)
+- [ ] Multi-step reasoning with chain-of-thought display
+
+#### Plugin System
+- [ ] Plugin API specification (TypeScript SDK)
+- [ ] Plugin marketplace (community-contributed plugins)
+- [ ] Built-in plugins: note-taking, task extraction, calendar parsing
+- [ ] Plugin sandboxing (plugins can't access data outside their scope)
+
+#### Workflow Automation
+- [ ] Scheduled tasks (e.g., "summarize new files every morning")
+- [ ] Custom pipelines: ingest → summarize → extract action items → save
+- [ ] Webhook integration (trigger workflows from external events)
+- [ ] Batch processing mode (run a prompt against all documents)
+
+---
+
+### v3.0 — Collaboration & Sharing _(Target: +28 weeks)_
+
+**Goal**: Multi-user support while keeping everything local.
+
+#### Local Network Sharing
+- [ ] Share workspaces over local network (LAN only, no internet)
+- [ ] Role-based access: owner, editor, viewer
+- [ ] Real-time sync via mDNS/Bonjour discovery
+- [ ] Conflict resolution for simultaneous edits
+
+#### Export & Portability
+- [ ] Export workspace as portable archive (.law file)
+- [ ] Import workspace from archive
+- [ ] Export conversations as PDF, Markdown, or HTML
+- [ ] Export/import app settings and prompt templates
+- [ ] Workspace migration tool (move between machines via USB/network)
+
+#### Knowledge Graph
+- [ ] Entity extraction from documents (people, places, concepts)
+- [ ] Visual knowledge graph (interactive node-link diagram)
+- [ ] Cross-document relationship discovery
+- [ ] "What do my documents say about X?" aggregate query
+
+---
+
+### v3.5 — Performance & Scale _(Target: +34 weeks)_
+
+**Goal**: Handle large document collections and power-user workloads.
+
+#### Performance
+- [ ] Background ingestion queue (non-blocking uploads)
+- [ ] Incremental re-indexing (only re-embed changed chunks)
+- [ ] Embedding cache (don't re-embed identical text)
+- [ ] Lazy loading for conversation history (paginate messages)
+- [ ] Virtual scrolling for long chat threads
+- [ ] GPU acceleration detection and optimization hints
+
+#### Scale
+- [ ] Support 10,000+ documents per workspace
+- [ ] Workspace size analytics (storage, chunk count, index health)
+- [ ] Prune old/unused chunks to save space
+- [ ] Compressed vector storage option
+- [ ] Database vacuum and optimization tools
+
+#### Developer Experience
+- [ ] REST API documentation (Swagger/OpenAPI auto-generated)
+- [ ] CLI tool (`law-cli`) for headless operations (ingest, query, export)
+- [ ] Python SDK for scripting custom workflows
+- [ ] Docker Compose setup (one-command backend + Ollama)
+
+---
+
+### v4.0 — Enterprise & Security _(Target: +42 weeks)_
+
+**Goal**: Ready for teams, researchers, and security-conscious organizations.
+
+#### Security
+- [ ] Encrypted local storage (AES-256 at rest)
+- [ ] Password-protected workspaces
+- [ ] Audit log (who accessed what, when)
+- [ ] Secure wipe (cryptographic erasure of deleted data)
+- [ ] Data retention policies per workspace
+
+#### Research Features
+- [ ] BibTeX/citation generation from document metadata
+- [ ] Annotation layer (highlight + comment on retrieved chunks)
+- [ ] Research notebook mode (structured notes linked to sources)
+- [ ] PDF annotation sync (highlight in PDF → linked to workspace)
+- [ ] Export research report with inline citations
+
+#### Administration
+- [ ] Workspace usage dashboard (storage, queries, tokens used)
+- [ ] System health monitor (Ollama status, disk space, memory)
+- [ ] Auto-update mechanism (check for new releases)
+- [ ] Backup & restore with scheduler
+
+---
+
+### v5.0 — Platform _(Long-term vision)_
+
+**Goal**: The definitive local AI platform.
+
+- [ ] Mobile companion app (React Native, sync over local Wi-Fi)
+- [ ] Browser extension (save web pages directly to workspace)
+- [ ] Email integration (ingest emails, search across inbox locally)
+- [ ] Calendar integration (local .ics parsing)
+- [ ] Unified search across all workspaces
+- [ ] Custom model fine-tuning on your documents (LoRA, locally)
+- [ ] Local AI assistant that learns your preferences over time
+- [ ] App store / marketplace for community extensions
+- [ ] Self-hosted web UI option (for NAS/home server deployment)
+- [ ] Offline-first sync protocol (CRDTs for multi-device without cloud)
+
+---
+
+### Milestone Summary
+
+| Version | Theme | Target | Key Deliverable |
+|---------|-------|--------|-----------------|
+| **v0.1** | MVP | **Now** | Chat + RAG + Workspaces |
+| **v0.2** | Stability | +2 weeks | Error handling, tests, CI |
+| **v1.0** | Polish | +4 weeks | Themes, shortcuts, templates, search |
+| **v1.5** | Smart RAG | +8 weeks | Hybrid search, new formats, semantic chunking |
+| **v2.0** | Multimodal | +14 weeks | Images, voice, OCR, model management |
+| **v2.5** | Agents | +20 weeks | Tool calling, plugins, workflows |
+| **v3.0** | Collaboration | +28 weeks | LAN sharing, export, knowledge graph |
+| **v3.5** | Scale | +34 weeks | Performance, 10K+ docs, CLI, Docker |
+| **v4.0** | Enterprise | +42 weeks | Encryption, audit, research tools |
+| **v5.0** | Platform | Long-term | Mobile, browser ext, fine-tuning, marketplace |
 
 ---
 
