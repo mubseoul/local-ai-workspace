@@ -399,35 +399,37 @@ Use this script to record a compelling demo:
 
 ---
 
-### v1.5 — Advanced RAG _(Target: +8 weeks)_
+### v1.5 — Advanced RAG _(✅ COMPLETE — 2026-02-22)_
 
 **Goal**: Smarter retrieval and better answers from documents.
 
 #### Retrieval Improvements
-- [ ] Hybrid search: vector similarity + BM25 keyword search
-- [ ] Re-ranking with cross-encoder (local model)
-- [ ] Recursive retrieval: if first pass is low-confidence, expand search
-- [ ] Chunk metadata enrichment (headings, section titles, table of contents)
-- [ ] Configurable retrieval strategy per workspace
+- [x] Hybrid search: vector similarity + BM25 keyword search
+- [x] Re-ranking with cross-encoder (local model)
+- [x] Recursive retrieval: if first pass is low-confidence, expand search
+- [x] Chunk metadata enrichment (headings, section titles, table of contents)
+- [x] Configurable retrieval strategy per workspace
 
 #### Chunking Improvements
-- [ ] Semantic chunking (split by topic/meaning, not just size)
-- [ ] Table-aware chunking for PDFs (don't split tables)
-- [ ] Hierarchical chunks (parent-child for context expansion)
-- [ ] Chunk quality scoring (skip low-signal chunks like headers-only)
+- [x] Semantic chunking (split by topic/meaning, not just size)
+- [x] Table-aware chunking for PDFs (don't split tables)
+- [x] Hierarchical chunks (parent-child for context expansion)
+- [x] Chunk quality scoring (skip low-signal chunks like headers-only)
 
 #### Citation & Transparency
-- [ ] Inline citations in response text (clickable `[1]` links)
-- [ ] "Show retrieved context" debug view (see exactly what the model received)
-- [ ] Confidence indicator per answer (based on retrieval scores)
-- [ ] Source highlighting: click citation → show original text highlighted in document
+- [x] Inline citations in response text (clickable `[1]` links)
+- [x] "Show retrieved context" debug view (see exactly what the model received)
+- [x] Confidence indicator per answer (based on retrieval scores)
+- [x] Source highlighting: click citation → show original text highlighted in document
 
 #### New File Formats
-- [ ] EPUB (e-books)
-- [ ] HTML (web pages, saved articles)
-- [ ] CSV / Excel (structured data with column awareness)
-- [ ] Source code files (.py, .js, .ts, .rs, .go, etc.)
-- [ ] Markdown with frontmatter parsing
+- [x] EPUB (e-books)
+- [x] HTML (web pages, saved articles)
+- [x] CSV / Excel (structured data with column awareness)
+- [x] Source code files (.py, .js, .ts, .rs, .go, etc.)
+- [x] Markdown with frontmatter parsing
+
+**Status:** ✅ Complete (Backend + Frontend) | See [V1.5_IMPLEMENTATION.md](V1.5_IMPLEMENTATION.md) and [V1.5_FRONTEND.md](V1.5_FRONTEND.md)
 
 ---
 

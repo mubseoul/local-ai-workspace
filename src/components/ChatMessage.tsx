@@ -1,7 +1,8 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import ReactMarkdown from "react-markdown";
 import { User, Bot, Copy, Check, Edit3, RefreshCw, X } from "lucide-react";
 import { SourceCitation } from "./SourceCitation";
+import { SourceHighlight } from "./SourceHighlight";
 import { toast } from "./Toast";
 import type { Message } from "../lib/types";
 
@@ -17,6 +18,7 @@ export function ChatMessage({ message, isLast, onEdit, onRegenerate }: Props) {
   const [copied, setCopied] = useState(false);
   const [editing, setEditing] = useState(false);
   const [editContent, setEditContent] = useState(message.content);
+  const [highlightedSource, setHighlightedSource] = useState<{ source: any; index: number } | null>(null);
 
   const handleCopy = useCallback(async () => {
     try {
@@ -40,6 +42,31 @@ export function ChatMessage({ message, isLast, onEdit, onRegenerate }: Props) {
     setEditContent(message.content);
     setEditing(false);
   }, [message.content]);
+
+  // Process content to make inline citations clickable
+  const processedContent = useMemo(() => {
+    if (isUser || message.sources.length === 0) return message.content;
+
+    // Replace [1], [2], etc. with clickable links
+    return message.content.replace(/\[(\d+)\]/g, (match, num) => {
+      const index = parseInt(num) - 1;
+      if (index >= 0 && index < message.sources.length) {
+        return `<span class="citation-link" data-citation="${index}">${match}</span>`;
+      }
+      return match;
+    });
+  }, [message.content, message.sources, isUser]);
+
+  // Handle citation clicks
+  const handleCitationClick = useCallback((e: React.MouseEvent) => {
+    const target = e.target as HTMLElement;
+    if (target.classList.contains('citation-link')) {
+      const index = parseInt(target.getAttribute('data-citation') || '0');
+      if (message.sources[index]) {
+        setHighlightedSource({ source: message.sources[index], index });
+      }
+    }
+  }, [message.sources]);
 
   return (
     <div className={`group flex gap-4 px-4 py-6 ${isUser ? "bg-surface-900/50 dark:bg-surface-900/50" : ""}`}>
@@ -114,15 +141,31 @@ export function ChatMessage({ message, isLast, onEdit, onRegenerate }: Props) {
             </div>
           </div>
         ) : (
-          <div className="prose prose-invert prose-sm max-w-none prose-p:leading-relaxed prose-pre:bg-surface-800 prose-pre:border prose-pre:border-surface-700 prose-code:text-accent-light prose-code:before:content-none prose-code:after:content-none">
-            <ReactMarkdown>{message.content}</ReactMarkdown>
-          </div>
+          <>
+            <div
+              className="prose prose-invert prose-sm max-w-none prose-p:leading-relaxed prose-pre:bg-surface-800 prose-pre:border prose-pre:border-surface-700 prose-code:text-accent-light prose-code:before:content-none prose-code:after:content-none [&_.citation-link]:inline-flex [&_.citation-link]:items-center [&_.citation-link]:justify-center [&_.citation-link]:w-5 [&_.citation-link]:h-5 [&_.citation-link]:text-[10px] [&_.citation-link]:font-mono [&_.citation-link]:bg-accent/20 [&_.citation-link]:text-accent [&_.citation-link]:rounded [&_.citation-link]:cursor-pointer [&_.citation-link]:hover:bg-accent/30 [&_.citation-link]:transition-colors [&_.citation-link]:mx-0.5"
+              onClick={handleCitationClick}
+            >
+              {isUser || message.sources.length === 0 ? (
+                <ReactMarkdown>{message.content}</ReactMarkdown>
+              ) : (
+                <div dangerouslySetInnerHTML={{ __html: processedContent }} />
+              )}
+            </div>
+            {message.sources.length > 0 && (
+              <div className="mt-4">
+                <SourceCitation sources={message.sources} />
+              </div>
+            )}
+          </>
         )}
 
-        {message.sources.length > 0 && !editing && (
-          <div className="mt-4">
-            <SourceCitation sources={message.sources} />
-          </div>
+        {highlightedSource && (
+          <SourceHighlight
+            source={highlightedSource.source}
+            index={highlightedSource.index}
+            onClose={() => setHighlightedSource(null)}
+          />
         )}
       </div>
     </div>

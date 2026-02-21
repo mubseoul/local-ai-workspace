@@ -245,6 +245,10 @@ export const useAppStore = create<AppState>((set, get) => ({
         model: settings?.chat_model,
         temperature: settings?.temperature,
         system_prompt: activeConversation.system_prompt || undefined,
+        // v1.5 Advanced RAG parameters
+        retrieval_strategy: settings?.retrieval_strategy,
+        use_recursive_retrieval: settings?.use_recursive_retrieval,
+        show_debug_context: false, // Can be toggled in UI later
       });
 
       for await (const chunk of stream) {

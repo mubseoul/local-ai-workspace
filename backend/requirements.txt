@@ -11,3 +11,15 @@ chardet==5.2.0
 aiosqlite==0.20.0
 pytest==8.3.4
 pytest-asyncio==0.24.0
+
+# v1.5 Advanced RAG dependencies
+rank-bm25==0.2.2              # BM25 keyword search
+sentence-transformers==3.3.1  # Cross-encoder re-ranking & semantic chunking
+ebooklib==0.18               # EPUB support
+beautifulsoup4==4.12.3       # HTML extraction
+lxml==5.3.0                  # HTML/XML parsing
+openpyxl==3.1.5              # Excel support
+pandas==2.2.3                # CSV/Excel data handling
+pyyaml==6.0.2                # Markdown frontmatter parsing
+pymupdf==1.25.2              # Better PDF extraction with tables
+nltk==3.9.1                  # Advanced text processing

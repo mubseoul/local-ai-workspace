@@ -19,6 +19,13 @@ class Settings(BaseSettings):
     retry_backoff: float = 1.0
     debug: bool = False
 
+    # v1.5 Advanced RAG settings
+    retrieval_strategy: str = "vector"  # "vector", "bm25", "hybrid", "hybrid_rerank"
+    chunking_strategy: str = "sentence"  # "sentence", "semantic", "hierarchical"
+    use_recursive_retrieval: bool = False
+    enable_reranking: bool = False
+    confidence_threshold: float = 0.5  # For recursive retrieval
+
     model_config = {"env_file": ".env", "env_prefix": "LAW_"}
 
     def workspace_dir(self, workspace_id: str) -> Path:

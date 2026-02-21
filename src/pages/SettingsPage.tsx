@@ -239,6 +239,68 @@ export function SettingsPage() {
           </div>
         </section>
 
+        {/* Advanced RAG Settings (v1.5) */}
+        <section className="mb-8">
+          <div className="flex items-center gap-2 mb-4">
+            <h2 className="text-sm font-semibold text-surface-300 uppercase tracking-wider">
+              Advanced RAG (v1.5)
+            </h2>
+            <span className="text-xs px-2 py-0.5 bg-accent/20 text-accent rounded">New</span>
+          </div>
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm text-surface-400 mb-1.5">Retrieval Strategy</label>
+              <select
+                value={local.retrieval_strategy ?? "vector"}
+                onChange={(e) => setLocal({ ...local, retrieval_strategy: e.target.value as any })}
+                className="w-full px-3 py-2 bg-surface-800 border border-surface-700 rounded-lg text-sm text-surface-200 focus:outline-none focus:border-accent"
+              >
+                <option value="vector">Vector Similarity (Fastest)</option>
+                <option value="bm25">BM25 Keyword Search</option>
+                <option value="hybrid">Hybrid (Vector + BM25)</option>
+                <option value="hybrid_rerank">Hybrid + Re-ranking (Best Quality)</option>
+              </select>
+              <p className="text-xs text-surface-500 mt-1">
+                Choose search strategy. Hybrid re-ranking provides best quality but is slower.
+              </p>
+            </div>
+
+            <div>
+              <label className="block text-sm text-surface-400 mb-1.5">Chunking Strategy</label>
+              <select
+                value={local.chunking_strategy ?? "sentence"}
+                onChange={(e) => setLocal({ ...local, chunking_strategy: e.target.value as any })}
+                className="w-full px-3 py-2 bg-surface-800 border border-surface-700 rounded-lg text-sm text-surface-200 focus:outline-none focus:border-accent"
+              >
+                <option value="sentence">Sentence-based (Standard)</option>
+                <option value="semantic">Semantic (Topic-aware)</option>
+                <option value="hierarchical">Hierarchical (Parent-Child)</option>
+              </select>
+              <p className="text-xs text-surface-500 mt-1">
+                How documents are split into chunks. Applies to newly ingested documents.
+              </p>
+            </div>
+
+            <div className="flex items-center justify-between px-4 py-3 bg-surface-800 border border-surface-700 rounded-lg">
+              <div>
+                <div className="text-sm text-surface-300">Recursive Retrieval</div>
+                <p className="text-xs text-surface-500 mt-0.5">
+                  Automatically expand search when confidence is low
+                </p>
+              </div>
+              <label className="relative inline-flex items-center cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={local.use_recursive_retrieval ?? false}
+                  onChange={(e) => setLocal({ ...local, use_recursive_retrieval: e.target.checked })}
+                  className="sr-only peer"
+                />
+                <div className="w-11 h-6 bg-surface-700 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-accent/30 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-accent"></div>
+              </label>
+            </div>
+          </div>
+        </section>
+
         {/* Data Location */}
         <section className="mb-8">
           <h2 className="text-sm font-semibold text-surface-300 uppercase tracking-wider mb-4">

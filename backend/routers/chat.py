@@ -321,10 +321,44 @@ async def list_folders():
         await db.close()
 
 
+@router.post("/debug/retrieve")
+async def debug_retrieve(workspace_id: str, query: str, strategy: str = "vector", top_k: int = 5):
+    """
+    Debug endpoint to show what the RAG system retrieves for a query.
+
+    Returns the full retrieval results with all metadata for transparency.
+    """
+    try:
+        results = await rag.search(
+            workspace_id=workspace_id,
+            query=query,
+            top_k=top_k,
+            strategy=strategy,
+        )
+
+        return {
+            "query": query,
+            "strategy": strategy,
+            "total_results": len(results),
+            "results": results,
+            "confidence_breakdown": {
+                "high": sum(1 for r in results if r.get("confidence") == "high"),
+                "medium": sum(1 for r in results if r.get("confidence") == "medium"),
+                "low": sum(1 for r in results if r.get("confidence") == "low"),
+            }
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @router.post("/send")
 async def send_message(body: ChatRequest):
     model = body.model or settings.default_chat_model
     temperature = body.temperature if body.temperature is not None else settings.temperature
+
+    # Get retrieval strategy from request (default to "vector" for compatibility)
+    retrieval_strategy = getattr(body, 'retrieval_strategy', 'vector')
+    show_debug_context = getattr(body, 'show_debug_context', False)
 
     db = await get_db()
     try:
@@ -348,22 +382,46 @@ async def send_message(body: ChatRequest):
 
     sources = []
     context_text = ""
+    retrieval_metadata = {}
+
     if body.mode == "workspace" and body.workspace_id:
-        search_results = await rag.search(body.workspace_id, body.message)
+        # Use advanced RAG search with configurable strategy
+        search_results = await rag.search(
+            workspace_id=body.workspace_id,
+            query=body.message,
+            strategy=retrieval_strategy,
+            use_recursive=getattr(body, 'use_recursive_retrieval', False),
+        )
         sources = search_results
+
+        # Store metadata for debug view
+        retrieval_metadata = {
+            "strategy": retrieval_strategy,
+            "total_results": len(sources),
+            "confidence_breakdown": {
+                "high": sum(1 for s in sources if s.get("confidence") == "high"),
+                "medium": sum(1 for s in sources if s.get("confidence") == "medium"),
+                "low": sum(1 for s in sources if s.get("confidence") == "low"),
+            }
+        }
+
         if sources:
             context_parts = []
             for i, s in enumerate(sources, 1):
                 page_info = f" (page {s['page']})" if s.get("page") else ""
-                context_parts.append(f"[{i}] {s['filename']}{page_info}:\n{s['chunk_text']}")
+                confidence = s.get("confidence", "unknown")
+                score = s.get("score", 0)
+                context_parts.append(
+                    f"[{i}] {s['filename']}{page_info} [confidence: {confidence}, score: {score:.3f}]:\n{s['chunk_text']}"
+                )
             context_text = "\n\n".join(context_parts)
 
     system = body.system_prompt or ""
     if body.mode == "workspace" and context_text:
         rag_instruction = (
             "Answer the user's question based on the following document excerpts. "
-            "Cite sources using [1], [2], etc. If the documents don't contain "
-            "relevant information, say so clearly.\n\n"
+            "Use inline citations like [1], [2], etc. to reference specific sources. "
+            "If the documents don't contain relevant information, say so clearly.\n\n"
             f"--- DOCUMENTS ---\n{context_text}\n--- END DOCUMENTS ---"
         )
         system = f"{system}\n\n{rag_instruction}" if system else rag_instruction
@@ -411,8 +469,11 @@ async def send_message(body: ChatRequest):
                 {
                     "filename": s["filename"],
                     "chunk_text": s["chunk_text"][:200],
+                    "full_chunk_text": s["chunk_text"],  # Store full text for highlighting
                     "page": s.get("page"),
                     "score": s.get("score", 0),
+                    "confidence": s.get("confidence", "unknown"),
+                    "doc_id": s.get("doc_id", ""),
                 }
                 for s in sources
             ]
@@ -428,10 +489,21 @@ async def send_message(body: ChatRequest):
             finally:
                 await db2.close()
 
+            # Calculate overall confidence
+            overall_confidence = "high"
+            if sources:
+                high_count = sum(1 for s in sources if s.get("confidence") == "high")
+                if high_count < len(sources) / 2:
+                    overall_confidence = "medium"
+                if all(s.get("confidence") == "low" for s in sources):
+                    overall_confidence = "low"
+
             done_payload = json.dumps({
                 "type": "done",
                 "message_id": assistant_msg_id,
                 "sources": source_list,
+                "confidence": overall_confidence,
+                "retrieval_metadata": retrieval_metadata if show_debug_context else None,
             })
             yield f"data: {done_payload}\n\n"
 

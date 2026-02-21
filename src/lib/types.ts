@@ -31,6 +31,10 @@ export interface Source {
   chunk_text: string;
   page: number | null;
   score: number;
+  // v1.5 Advanced RAG fields
+  confidence?: "high" | "medium" | "low" | "unknown";
+  doc_id?: string;
+  full_chunk_text?: string; // For source highlighting
 }
 
 export interface Message {
@@ -50,6 +54,10 @@ export interface ChatRequest {
   model?: string;
   temperature?: number;
   system_prompt?: string;
+  // v1.5 Advanced RAG parameters
+  retrieval_strategy?: "vector" | "bm25" | "hybrid" | "hybrid_rerank";
+  use_recursive_retrieval?: boolean;
+  show_debug_context?: boolean;
 }
 
 export interface Document {
@@ -80,6 +88,9 @@ export interface OllamaStatus {
 
 export type Theme = "light" | "dark" | "system";
 
+export type RetrievalStrategy = "vector" | "bm25" | "hybrid" | "hybrid_rerank";
+export type ChunkingStrategy = "sentence" | "semantic" | "hierarchical";
+
 export interface AppSettings {
   chat_model: string;
   embedding_model: string;
@@ -90,6 +101,10 @@ export interface AppSettings {
   chunk_overlap: number;
   data_dir: string;
   theme: Theme;
+  // v1.5 Advanced RAG settings
+  retrieval_strategy?: RetrievalStrategy;
+  chunking_strategy?: ChunkingStrategy;
+  use_recursive_retrieval?: boolean;
 }
 
 export type ChatMode = "general" | "workspace";
@@ -99,6 +114,17 @@ export interface StreamChunk {
   content?: string;
   message_id?: string;
   sources?: Source[];
+  // v1.5 Advanced RAG fields
+  confidence?: "high" | "medium" | "low";
+  retrieval_metadata?: {
+    strategy: string;
+    total_results: number;
+    confidence_breakdown: {
+      high: number;
+      medium: number;
+      low: number;
+    };
+  };
 }
 
 export interface PromptTemplate {
@@ -135,4 +161,23 @@ export interface DocumentPreview {
   total_pages: number;
   preview: string;
   truncated: boolean;
+}
+
+// v1.5 Advanced RAG types
+export interface DebugRetrievalResult {
+  query: string;
+  strategy: string;
+  total_results: number;
+  results: Array<{
+    chunk_text: string;
+    filename: string;
+    page: number | null;
+    score: number;
+    confidence: string;
+  }>;
+  confidence_breakdown: {
+    high: number;
+    medium: number;
+    low: number;
+  };
 }

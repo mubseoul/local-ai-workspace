@@ -53,6 +53,10 @@ class ChatRequest(BaseModel):
     model: Optional[str] = None
     temperature: Optional[float] = None
     system_prompt: Optional[str] = None
+    # v1.5 Advanced RAG parameters
+    retrieval_strategy: Optional[str] = "vector"  # "vector", "bm25", "hybrid", "hybrid_rerank"
+    use_recursive_retrieval: Optional[bool] = False
+    show_debug_context: Optional[bool] = False
 
 
 class EditMessageRequest(BaseModel):
@@ -64,6 +68,10 @@ class Source(BaseModel):
     chunk_text: str
     page: Optional[int] = None
     score: float = 0.0
+    # v1.5 Advanced RAG fields
+    confidence: Optional[str] = "unknown"  # "high", "medium", "low"
+    doc_id: Optional[str] = ""
+    full_chunk_text: Optional[str] = None  # For source highlighting
 
 
 class Message(BaseModel):
@@ -104,6 +112,10 @@ class SettingsUpdate(BaseModel):
     chunk_overlap: Optional[int] = None
     data_dir: Optional[str] = None
     theme: Optional[str] = None
+    # v1.5 Advanced RAG settings
+    retrieval_strategy: Optional[str] = None  # "vector", "bm25", "hybrid", "hybrid_rerank"
+    chunking_strategy: Optional[str] = None  # "sentence", "semantic", "hierarchical"
+    use_recursive_retrieval: Optional[bool] = None
 
 
 class OllamaModel(BaseModel):

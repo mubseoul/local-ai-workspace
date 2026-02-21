@@ -1,8 +1,41 @@
-def chunk_text(text: str, chunk_size: int = 512, chunk_overlap: int = 64) -> list[str]:
-    """Split text into overlapping chunks, breaking at sentence boundaries when possible."""
+def chunk_text(
+    text: str,
+    chunk_size: int = 512,
+    chunk_overlap: int = 64,
+    strategy: str = "sentence",
+) -> list[str]:
+    """
+    Split text into overlapping chunks.
+
+    Args:
+        text: Text to chunk
+        chunk_size: Maximum chunk size
+        chunk_overlap: Overlap between chunks
+        strategy: Chunking strategy - "sentence" (default), "semantic", "hierarchical"
+
+    Returns:
+        List of chunk texts
+    """
     if not text or not text.strip():
         return []
 
+    if strategy == "semantic":
+        from utils.advanced_chunking import semantic_chunk_text
+        enriched = semantic_chunk_text(text, max_chunk_size=chunk_size)
+        return [chunk["text"] for chunk in enriched]
+
+    elif strategy == "hierarchical":
+        from utils.advanced_chunking import hierarchical_chunk_text
+        enriched = hierarchical_chunk_text(
+            text,
+            parent_chunk_size=chunk_size * 2,
+            child_chunk_size=chunk_size,
+            overlap=chunk_overlap,
+        )
+        # Return only child chunks for now (parent chunks stored separately)
+        return [chunk["text"] for chunk in enriched if not chunk["metadata"].get("is_parent", False)]
+
+    # Default: sentence-based chunking
     sentences = _split_sentences(text)
     chunks = []
     current_chunk: list[str] = []

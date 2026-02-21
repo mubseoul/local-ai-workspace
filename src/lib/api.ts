@@ -13,6 +13,7 @@ import type {
   PromptTemplateCreate,
   ConversationSearchResult,
   DocumentPreview,
+  DebugRetrievalResult,
 } from "./types";
 
 const BASE = "/api";
@@ -99,6 +100,16 @@ export const api = {
     search: (query: string) =>
       request<ConversationSearchResult[]>(`/chat/search?q=${encodeURIComponent(query)}`),
     folders: () => request<string[]>("/chat/folders"),
+    // v1.5 Advanced RAG: Debug retrieval endpoint
+    debugRetrieve: (workspaceId: string, query: string, strategy?: string, topK?: number) => {
+      const params = new URLSearchParams({
+        workspace_id: workspaceId,
+        query,
+        ...(strategy && { strategy }),
+        ...(topK && { top_k: String(topK) }),
+      });
+      return request<DebugRetrievalResult>(`/chat/debug/retrieve?${params}`);
+    },
     send: async function* (body: ChatRequest): AsyncGenerator<StreamChunk> {
       const res = await fetch(`${BASE}/chat/send`, {
         method: "POST",
