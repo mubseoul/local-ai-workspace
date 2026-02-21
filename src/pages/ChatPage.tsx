@@ -1,22 +1,37 @@
 import { useEffect, useRef, useState, useCallback } from "react";
-import { Bot, AlertTriangle, ArrowDown } from "lucide-react";
+import { Bot, AlertTriangle, ArrowDown, Download, Tag } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import { ChatMessage } from "../components/ChatMessage";
-import { ChatInput } from "../components/ChatInput";
+import { ChatInput, ChatInputHandle } from "../components/ChatInput";
+import { PromptTemplatePanel } from "../components/PromptTemplatePanel";
 import { ChatSkeleton } from "../components/Skeleton";
 import { useChat } from "../hooks/useChat";
 import { useOllama } from "../hooks/useOllama";
 import { useAppStore } from "../store/appStore";
+import { api } from "../lib/api";
+import { toast } from "../components/Toast";
 
 export function ChatPage() {
   const { messages, isStreaming, streamingContent, send, error } = useChat();
   const { isRunning } = useOllama();
-  const { chatMode, activeWorkspace, activeConversation, clearError } = useAppStore();
+  const {
+    chatMode,
+    activeWorkspace,
+    activeConversation,
+    clearError,
+    editMessage,
+    regenerateLastResponse,
+    updateConversation,
+  } = useAppStore();
 
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
+  const chatInputRef = useRef<ChatInputHandle>(null);
   const [userScrolledUp, setUserScrolledUp] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [showTemplates, setShowTemplates] = useState(false);
+  const [showTagInput, setShowTagInput] = useState(false);
+  const [tagInput, setTagInput] = useState("");
 
   const isNearBottom = useCallback(() => {
     const el = scrollContainerRef.current;
@@ -48,6 +63,57 @@ export function ChatPage() {
       return () => clearTimeout(t);
     }
   }, [activeConversation?.id]);
+
+  const handleEdit = useCallback(
+    async (messageId: string, content: string) => {
+      await editMessage(messageId, content);
+      await send(content);
+    },
+    [editMessage, send]
+  );
+
+  const handleExport = useCallback(async () => {
+    if (!activeConversation) return;
+    try {
+      const md = await api.chat.exportConversation(activeConversation.id);
+      const blob = new Blob([md], { type: "text/markdown" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${activeConversation.title.slice(0, 50)}.md`;
+      a.click();
+      URL.revokeObjectURL(url);
+      toast.success("Conversation exported");
+    } catch {
+      toast.error("Export failed");
+    }
+  }, [activeConversation]);
+
+  const handleAddTag = useCallback(async () => {
+    if (!activeConversation || !tagInput.trim()) return;
+    const newTags = [...(activeConversation.tags || []), tagInput.trim()];
+    await updateConversation(activeConversation.id, { tags: newTags });
+    setTagInput("");
+    setShowTagInput(false);
+    toast.success("Tag added");
+  }, [activeConversation, tagInput, updateConversation]);
+
+  const handleRemoveTag = useCallback(
+    async (tag: string) => {
+      if (!activeConversation) return;
+      const newTags = (activeConversation.tags || []).filter((t) => t !== tag);
+      await updateConversation(activeConversation.id, { tags: newTags });
+    },
+    [activeConversation, updateConversation]
+  );
+
+  const handleTemplateInsert = useCallback((content: string) => {
+    chatInputRef.current?.insertText(content);
+  }, []);
+
+  const focusChatInput = useCallback(() => {
+    chatInputRef.current?.focus();
+  }, []);
 
   if (!isRunning) {
     return (
@@ -87,12 +153,71 @@ export function ChatPage() {
               {activeWorkspace.name}
             </span>
           )}
+          {activeConversation?.tags?.map((tag) => (
+            <span
+              key={tag}
+              className="text-[10px] px-2 py-0.5 bg-surface-800 text-surface-400 rounded-full flex items-center gap-1 border border-surface-700 cursor-pointer hover:border-red-500/30 hover:text-red-400 transition-colors"
+              onClick={() => handleRemoveTag(tag)}
+              title="Click to remove"
+            >
+              <Tag size={9} />
+              {tag}
+            </span>
+          ))}
         </div>
         <div className="flex items-center gap-2 text-xs text-surface-500 flex-shrink-0">
+          {activeConversation && (
+            <>
+              <button
+                onClick={() => setShowTagInput(!showTagInput)}
+                className="p-1.5 hover:bg-surface-800 rounded-lg transition-colors"
+                title="Add tag"
+              >
+                <Tag size={14} />
+              </button>
+              <button
+                onClick={handleExport}
+                className="p-1.5 hover:bg-surface-800 rounded-lg transition-colors"
+                title="Export as Markdown"
+              >
+                <Download size={14} />
+              </button>
+            </>
+          )}
           <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
           <span className="hidden sm:inline">{chatMode === "workspace" ? "Workspace RAG" : "General Chat"}</span>
         </div>
       </div>
+
+      {/* Tag Input */}
+      {showTagInput && activeConversation && (
+        <div className="px-4 py-2 border-b border-surface-700 bg-surface-900/30 flex items-center gap-2">
+          <Tag size={13} className="text-surface-400" />
+          <input
+            autoFocus
+            value={tagInput}
+            onChange={(e) => setTagInput(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") handleAddTag();
+              if (e.key === "Escape") setShowTagInput(false);
+            }}
+            placeholder="Add a tag..."
+            className="flex-1 bg-transparent text-sm text-surface-200 placeholder-surface-500 focus:outline-none"
+          />
+          <button
+            onClick={handleAddTag}
+            className="px-2 py-0.5 text-xs bg-accent text-white rounded hover:bg-accent-hover transition-colors"
+          >
+            Add
+          </button>
+          <button
+            onClick={() => setShowTagInput(false)}
+            className="px-2 py-0.5 text-xs text-surface-400 hover:text-surface-200 transition-colors"
+          >
+            Cancel
+          </button>
+        </div>
+      )}
 
       {/* Messages */}
       <div
@@ -121,8 +246,14 @@ export function ChatPage() {
         )}
 
         <div className="max-w-3xl mx-auto">
-          {messages.map((msg) => (
-            <ChatMessage key={msg.id} message={msg} />
+          {messages.map((msg, i) => (
+            <ChatMessage
+              key={msg.id}
+              message={msg}
+              isLast={i === messages.length - 1}
+              onEdit={msg.role === "user" ? handleEdit : undefined}
+              onRegenerate={msg.role === "assistant" && i === messages.length - 1 ? regenerateLastResponse : undefined}
+            />
           ))}
 
           {isStreaming && streamingContent && (
@@ -165,6 +296,7 @@ export function ChatPage() {
 
       {/* Input */}
       <ChatInput
+        ref={chatInputRef}
         onSend={send}
         isStreaming={isStreaming}
         placeholder={
@@ -172,6 +304,14 @@ export function ChatPage() {
             ? "Ask about your documents..."
             : "Type a message..."
         }
+        onOpenTemplates={() => setShowTemplates(true)}
+      />
+
+      {/* Templates Panel */}
+      <PromptTemplatePanel
+        open={showTemplates}
+        onClose={() => setShowTemplates(false)}
+        onInsert={handleTemplateInsert}
       />
     </div>
   );

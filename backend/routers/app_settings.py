@@ -27,6 +27,7 @@ async def get_settings():
         "chunk_size": int(stored.get("chunk_size", settings.chunk_size)),
         "chunk_overlap": int(stored.get("chunk_overlap", settings.chunk_overlap)),
         "data_dir": stored.get("data_dir", str(settings.data_dir)),
+        "theme": stored.get("theme", "system"),
     }
 
 

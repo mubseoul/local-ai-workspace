@@ -9,7 +9,7 @@ from fastapi.responses import JSONResponse
 
 from config import settings
 from database import init_db, get_db
-from routers import chat, documents, workspaces, ollama, app_settings
+from routers import chat, documents, workspaces, ollama, app_settings, templates
 from services.ollama_service import OllamaService
 
 
@@ -44,7 +44,7 @@ logger = logging.getLogger(__name__)
 
 @asynccontextmanager
 async def lifespan(_app: FastAPI):
-    logger.info("Starting Local AI Workspace backend v0.2.0")
+    logger.info("Starting Local AI Workspace backend v1.0.0")
     logger.info("Data directory: %s", settings.data_dir)
     settings.data_dir.mkdir(parents=True, exist_ok=True)
     await init_db()
@@ -55,7 +55,7 @@ async def lifespan(_app: FastAPI):
 
 app = FastAPI(
     title="Local AI Workspace API",
-    version="0.2.0",
+    version="1.0.0",
     lifespan=lifespan,
 )
 
@@ -95,6 +95,7 @@ app.include_router(workspaces.router, prefix="/api/workspaces", tags=["workspace
 app.include_router(chat.router, prefix="/api/chat", tags=["chat"])
 app.include_router(documents.router, prefix="/api/documents", tags=["documents"])
 app.include_router(app_settings.router, prefix="/api/settings", tags=["settings"])
+app.include_router(templates.router, prefix="/api/templates", tags=["templates"])
 
 
 @app.get("/api/health")
@@ -120,7 +121,7 @@ async def health():
 
     return {
         "status": overall,
-        "version": "0.2.0",
+        "version": "1.0.0",
         "services": {
             "ollama": {"ok": ollama_ok, "error": ollama_error},
             "database": {"ok": db_ok},

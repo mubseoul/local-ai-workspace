@@ -82,6 +82,7 @@ export function DocumentsPage() {
               const doc = documents.find((d) => d.id === docId);
               setDeleteTarget({ id: docId, name: doc?.filename || "this document" });
             }}
+            workspaceId={activeWorkspace.id}
           />
         </div>
       </div>

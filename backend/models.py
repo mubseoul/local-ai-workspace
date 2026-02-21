@@ -30,8 +30,19 @@ class Conversation(BaseModel):
     title: str
     mode: str
     system_prompt: str
+    is_pinned: bool = False
+    folder: Optional[str] = None
+    tags: list[str] = []
     created_at: str
     updated_at: str
+
+
+class ConversationUpdate(BaseModel):
+    title: Optional[str] = None
+    is_pinned: Optional[bool] = None
+    folder: Optional[str] = None
+    tags: Optional[list[str]] = None
+    system_prompt: Optional[str] = None
 
 
 class ChatRequest(BaseModel):
@@ -42,6 +53,10 @@ class ChatRequest(BaseModel):
     model: Optional[str] = None
     temperature: Optional[float] = None
     system_prompt: Optional[str] = None
+
+
+class EditMessageRequest(BaseModel):
+    content: str
 
 
 class Source(BaseModel):
@@ -88,6 +103,7 @@ class SettingsUpdate(BaseModel):
     chunk_size: Optional[int] = None
     chunk_overlap: Optional[int] = None
     data_dir: Optional[str] = None
+    theme: Optional[str] = None
 
 
 class OllamaModel(BaseModel):
@@ -101,3 +117,38 @@ class OllamaStatus(BaseModel):
     running: bool
     models: list[OllamaModel] = []
     error: Optional[str] = None
+
+
+class PromptTemplate(BaseModel):
+    id: str
+    name: str
+    content: str
+    category: str = "custom"
+    is_builtin: bool = False
+    variables: list[str] = []
+    created_at: str
+    updated_at: str
+
+
+class PromptTemplateCreate(BaseModel):
+    name: str = Field(min_length=1, max_length=100)
+    content: str = Field(min_length=1)
+    category: str = "custom"
+    variables: list[str] = []
+
+
+class PromptTemplateUpdate(BaseModel):
+    name: Optional[str] = None
+    content: Optional[str] = None
+    category: Optional[str] = None
+    variables: Optional[list[str]] = None
+
+
+class ConversationSearchResult(BaseModel):
+    conversation_id: str
+    conversation_title: str
+    message_id: str
+    role: str
+    content: str
+    match_preview: str
+    created_at: str

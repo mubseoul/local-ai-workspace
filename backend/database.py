@@ -19,6 +19,8 @@ MIGRATIONS = [
         title TEXT NOT NULL DEFAULT 'New Chat',
         mode TEXT NOT NULL DEFAULT 'general',
         system_prompt TEXT DEFAULT '',
+        is_pinned INTEGER NOT NULL DEFAULT 0,
+        folder TEXT DEFAULT NULL,
         created_at TEXT NOT NULL DEFAULT (datetime('now')),
         updated_at TEXT NOT NULL DEFAULT (datetime('now')),
         FOREIGN KEY (workspace_id) REFERENCES workspaces(id) ON DELETE CASCADE
@@ -57,6 +59,26 @@ MIGRATIONS = [
     );
     """,
     """
+    CREATE TABLE IF NOT EXISTS prompt_templates (
+        id TEXT PRIMARY KEY,
+        name TEXT NOT NULL,
+        content TEXT NOT NULL,
+        category TEXT NOT NULL DEFAULT 'custom',
+        is_builtin INTEGER NOT NULL DEFAULT 0,
+        variables TEXT DEFAULT '[]',
+        created_at TEXT NOT NULL DEFAULT (datetime('now')),
+        updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+    """,
+    """
+    CREATE TABLE IF NOT EXISTS conversation_tags (
+        conversation_id TEXT NOT NULL,
+        tag TEXT NOT NULL,
+        PRIMARY KEY (conversation_id, tag),
+        FOREIGN KEY (conversation_id) REFERENCES conversations(id) ON DELETE CASCADE
+    );
+    """,
+    """
     CREATE INDEX IF NOT EXISTS idx_conversations_workspace
     ON conversations(workspace_id);
     """,
@@ -72,6 +94,41 @@ MIGRATIONS = [
     CREATE UNIQUE INDEX IF NOT EXISTS idx_documents_hash
     ON documents(workspace_id, file_hash);
     """,
+    """
+    CREATE INDEX IF NOT EXISTS idx_conversations_pinned
+    ON conversations(is_pinned);
+    """,
+    """
+    CREATE INDEX IF NOT EXISTS idx_prompt_templates_category
+    ON prompt_templates(category);
+    """,
+]
+
+V1_MIGRATIONS = [
+    "ALTER TABLE conversations ADD COLUMN is_pinned INTEGER NOT NULL DEFAULT 0;",
+    "ALTER TABLE conversations ADD COLUMN folder TEXT DEFAULT NULL;",
+    """
+    CREATE TABLE IF NOT EXISTS prompt_templates (
+        id TEXT PRIMARY KEY,
+        name TEXT NOT NULL,
+        content TEXT NOT NULL,
+        category TEXT NOT NULL DEFAULT 'custom',
+        is_builtin INTEGER NOT NULL DEFAULT 0,
+        variables TEXT DEFAULT '[]',
+        created_at TEXT NOT NULL DEFAULT (datetime('now')),
+        updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+    """,
+    """
+    CREATE TABLE IF NOT EXISTS conversation_tags (
+        conversation_id TEXT NOT NULL,
+        tag TEXT NOT NULL,
+        PRIMARY KEY (conversation_id, tag),
+        FOREIGN KEY (conversation_id) REFERENCES conversations(id) ON DELETE CASCADE
+    );
+    """,
+    "CREATE INDEX IF NOT EXISTS idx_conversations_pinned ON conversations(is_pinned);",
+    "CREATE INDEX IF NOT EXISTS idx_prompt_templates_category ON prompt_templates(category);",
 ]
 
 
@@ -89,5 +146,12 @@ async def init_db():
         for migration in MIGRATIONS:
             await db.execute(migration)
         await db.commit()
+
+        for migration in V1_MIGRATIONS:
+            try:
+                await db.execute(migration)
+                await db.commit()
+            except Exception:
+                pass
     finally:
         await db.close()

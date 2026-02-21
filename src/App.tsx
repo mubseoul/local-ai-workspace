@@ -1,21 +1,26 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { useAppStore } from "./store/appStore";
 import { Sidebar } from "./components/Sidebar";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { ToastContainer } from "./components/Toast";
+import { CommandPalette } from "./components/CommandPalette";
+import { ShortcutHelp } from "./components/ShortcutHelp";
 import { ChatPage } from "./pages/ChatPage";
 import { DocumentsPage } from "./pages/DocumentsPage";
 import { WorkspacesPage } from "./pages/WorkspacesPage";
 import { SettingsPage } from "./pages/SettingsPage";
 import { OnboardingPage } from "./pages/OnboardingPage";
+import { useKeyboardShortcuts } from "./hooks/useKeyboardShortcuts";
 import { Loader2 } from "lucide-react";
 
 type Page = "chat" | "documents" | "workspaces" | "settings";
 
 export default function App() {
-  const { init, initialized, ollamaStatus } = useAppStore();
+  const { init, initialized, ollamaStatus, createConversation, toggleSidebar } = useAppStore();
   const [page, setPage] = useState<Page>("chat");
   const [showOnboarding, setShowOnboarding] = useState(false);
+  const [showCommandPalette, setShowCommandPalette] = useState(false);
+  const [showShortcutHelp, setShowShortcutHelp] = useState(false);
 
   useEffect(() => {
     init();
@@ -29,6 +34,33 @@ export default function App() {
       }
     }
   }, [initialized, ollamaStatus]);
+
+  const handleNewChat = useCallback(async () => {
+    await createConversation();
+    setPage("chat");
+  }, [createConversation]);
+
+  const handleFocusChatInput = useCallback(() => {
+    setPage("chat");
+    setTimeout(() => {
+      const textarea = document.querySelector("textarea");
+      textarea?.focus();
+    }, 100);
+  }, []);
+
+  const handleEscape = useCallback(() => {
+    if (showCommandPalette) setShowCommandPalette(false);
+    else if (showShortcutHelp) setShowShortcutHelp(false);
+  }, [showCommandPalette, showShortcutHelp]);
+
+  useKeyboardShortcuts({
+    onNewChat: handleNewChat,
+    onCommandPalette: () => setShowCommandPalette((v) => !v),
+    onToggleSidebar: toggleSidebar,
+    onFocusChatInput: handleFocusChatInput,
+    onEscape: handleEscape,
+    onShortcutHelp: () => setShowShortcutHelp((v) => !v),
+  });
 
   if (!initialized) {
     return (
@@ -87,12 +119,19 @@ export default function App() {
   };
 
   return (
-    <div className="h-screen flex bg-surface-950">
+    <div className="h-screen flex bg-surface-950 text-surface-100 transition-colors duration-200">
       <ErrorBoundary fallbackMessage="Sidebar encountered an error.">
         <Sidebar currentPage={page} onNavigate={(p) => setPage(p as Page)} />
       </ErrorBoundary>
       <main className="flex-1 flex flex-col min-w-0">{renderPage()}</main>
       <ToastContainer />
+      <CommandPalette
+        open={showCommandPalette}
+        onClose={() => setShowCommandPalette(false)}
+        onNavigate={(p) => setPage(p as Page)}
+        onNewChat={handleNewChat}
+      />
+      <ShortcutHelp open={showShortcutHelp} onClose={() => setShowShortcutHelp(false)} />
     </div>
   );
 }

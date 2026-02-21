@@ -11,8 +11,19 @@ export interface Conversation {
   title: string;
   mode: "general" | "workspace";
   system_prompt: string;
+  is_pinned: boolean;
+  folder: string | null;
+  tags: string[];
   created_at: string;
   updated_at: string;
+}
+
+export interface ConversationUpdate {
+  title?: string;
+  is_pinned?: boolean;
+  folder?: string | null;
+  tags?: string[];
+  system_prompt?: string;
 }
 
 export interface Source {
@@ -67,6 +78,8 @@ export interface OllamaStatus {
   error: string | null;
 }
 
+export type Theme = "light" | "dark" | "system";
+
 export interface AppSettings {
   chat_model: string;
   embedding_model: string;
@@ -76,6 +89,7 @@ export interface AppSettings {
   chunk_size: number;
   chunk_overlap: number;
   data_dir: string;
+  theme: Theme;
 }
 
 export type ChatMode = "general" | "workspace";
@@ -85,4 +99,40 @@ export interface StreamChunk {
   content?: string;
   message_id?: string;
   sources?: Source[];
+}
+
+export interface PromptTemplate {
+  id: string;
+  name: string;
+  content: string;
+  category: string;
+  is_builtin: boolean;
+  variables: string[];
+  created_at: string;
+  updated_at: string;
+}
+
+export interface PromptTemplateCreate {
+  name: string;
+  content: string;
+  category?: string;
+  variables?: string[];
+}
+
+export interface ConversationSearchResult {
+  conversation_id: string;
+  conversation_title: string;
+  message_id: string;
+  role: string;
+  content: string;
+  match_preview: string;
+  created_at: string;
+}
+
+export interface DocumentPreview {
+  filename: string;
+  total_chars: number;
+  total_pages: number;
+  preview: string;
+  truncated: boolean;
 }

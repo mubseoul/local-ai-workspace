@@ -339,7 +339,7 @@ Use this script to record a compelling demo:
 
 ---
 
-### v0.2 — Stability & Polish — Current Release
+### v0.2 — Stability & Polish — Released
 
 **Goal**: Make the MVP rock-solid and production-ready for daily use.
 
@@ -358,44 +358,44 @@ Use this script to record a compelling demo:
 
 ---
 
-### v1.0 — Enhanced UX _(Target: +4 weeks)_
+### v1.0 — Enhanced UX — Current Release
 
 **Goal**: A polished daily-driver experience with quality-of-life features.
 
 #### Theming & Appearance
-- [ ] Light / dark theme toggle with system preference detection
-- [ ] Persist theme choice in settings
-- [ ] Smooth theme transitions
+- [x] Light / dark theme toggle with system preference detection
+- [x] Persist theme choice in settings
+- [x] Smooth theme transitions
 
 #### Keyboard Shortcuts
-- [ ] `Ctrl/Cmd + N` — New conversation
-- [ ] `Ctrl/Cmd + K` — Command palette (search conversations, switch workspace, navigate)
-- [ ] `Ctrl/Cmd + Shift + S` — Toggle sidebar
-- [ ] `Ctrl/Cmd + /` — Focus chat input
-- [ ] `Escape` — Close modals/dropdowns
-- [ ] Shortcut help overlay (`Ctrl/Cmd + ?`)
+- [x] `Ctrl/Cmd + N` — New conversation
+- [x] `Ctrl/Cmd + K` — Command palette (search conversations, switch workspace, navigate)
+- [x] `Ctrl/Cmd + Shift + S` — Toggle sidebar
+- [x] `Ctrl/Cmd + /` — Focus chat input
+- [x] `Escape` — Close modals/dropdowns
+- [x] Shortcut help overlay (`Ctrl/Cmd + ?`)
 
 #### Chat Enhancements
-- [ ] Edit sent messages (re-send with modification)
-- [ ] Regenerate last assistant response
-- [ ] Copy message to clipboard (one-click)
-- [ ] Markdown export of full conversation
-- [ ] Conversation search (full-text across all chats)
-- [ ] Pin important conversations to top
-- [ ] Conversation folders/tags for organization
+- [x] Edit sent messages (re-send with modification)
+- [x] Regenerate last assistant response
+- [x] Copy message to clipboard (one-click)
+- [x] Markdown export of full conversation
+- [x] Conversation search (full-text across all chats)
+- [x] Pin important conversations to top
+- [x] Conversation folders/tags for organization
 
 #### Document Management
 - [ ] Folder watch mode (auto-ingest new/changed files in a directory)
-- [ ] Re-ingest button per document (if you change chunk settings)
-- [ ] Document preview (show extracted text before ingesting)
-- [ ] Batch upload progress bar
-- [ ] File type icons in document list
+- [x] Re-ingest button per document (if you change chunk settings)
+- [x] Document preview (show extracted text before ingesting)
+- [x] Batch upload progress bar
+- [x] File type icons in document list
 
 #### Prompt Templates
-- [ ] Built-in template library (summarize, explain, compare, extract)
-- [ ] Custom user templates with variables (`{{document}}`, `{{question}}`)
-- [ ] Quick-insert from chat input
-- [ ] Import/export templates as JSON
+- [x] Built-in template library (summarize, explain, compare, extract)
+- [x] Custom user templates with variables (`{{document}}`, `{{question}}`)
+- [x] Quick-insert from chat input
+- [x] Import/export templates as JSON
 
 ---
 
@@ -589,7 +589,7 @@ Use this script to record a compelling demo:
 |---------|-------|--------|-----------------|
 | **v0.1** | MVP | **Now** | Chat + RAG + Workspaces |
 | **v0.2** | Stability | +2 weeks | Error handling, tests, CI |
-| **v1.0** | Polish | +4 weeks | Themes, shortcuts, templates, search |
+| **v1.0** | Polish | **Now** | Themes, shortcuts, templates, search |
 | **v1.5** | Smart RAG | +8 weeks | Hybrid search, new formats, semantic chunking |
 | **v2.0** | Multimodal | +14 weeks | Images, voice, OCR, model management |
 | **v2.5** | Agents | +20 weeks | Tool calling, plugins, workflows |

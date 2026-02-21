@@ -2,11 +2,14 @@ import { create } from "zustand";
 import type {
   Workspace,
   Conversation,
+  ConversationUpdate,
   Message,
   AppSettings,
   OllamaStatus,
   ChatMode,
   Source,
+  Theme,
+  PromptTemplate,
 } from "../lib/types";
 import { api } from "../lib/api";
 
@@ -25,6 +28,9 @@ interface AppState {
   settings: AppSettings | null;
   sidebarOpen: boolean;
   error: string | null;
+  theme: Theme;
+  resolvedTheme: "light" | "dark";
+  templates: PromptTemplate[];
 
   init: () => Promise<void>;
   checkOllama: () => Promise<void>;
@@ -36,12 +42,33 @@ interface AppState {
   setActiveConversation: (conv: Conversation | null) => Promise<void>;
   createConversation: (mode?: ChatMode, systemPrompt?: string) => Promise<Conversation>;
   deleteConversation: (id: string) => Promise<void>;
+  updateConversation: (id: string, data: ConversationUpdate) => Promise<void>;
   sendMessage: (content: string) => Promise<void>;
+  editMessage: (messageId: string, content: string) => Promise<void>;
+  regenerateLastResponse: () => Promise<void>;
   setChatMode: (mode: ChatMode) => void;
   loadSettings: () => Promise<void>;
   updateSettings: (data: Partial<AppSettings>) => Promise<void>;
+  setTheme: (theme: Theme) => void;
   toggleSidebar: () => void;
   clearError: () => void;
+  loadTemplates: () => Promise<void>;
+}
+
+function getResolvedTheme(theme: Theme): "light" | "dark" {
+  if (theme === "system") {
+    return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+  }
+  return theme;
+}
+
+function applyTheme(resolved: "light" | "dark") {
+  const root = document.documentElement;
+  if (resolved === "dark") {
+    root.classList.add("dark");
+  } else {
+    root.classList.remove("dark");
+  }
 }
 
 export const useAppStore = create<AppState>((set, get) => ({
@@ -59,6 +86,9 @@ export const useAppStore = create<AppState>((set, get) => ({
   settings: null,
   sidebarOpen: true,
   error: null,
+  theme: "system",
+  resolvedTheme: getResolvedTheme("system"),
+  templates: [],
 
   init: async () => {
     try {
@@ -66,6 +96,27 @@ export const useAppStore = create<AppState>((set, get) => ({
       await get().loadWorkspaces();
       await get().loadSettings();
       await get().loadConversations();
+      await get().loadTemplates();
+
+      const settings = get().settings;
+      if (settings?.theme) {
+        const resolved = getResolvedTheme(settings.theme);
+        applyTheme(resolved);
+        set({ theme: settings.theme, resolvedTheme: resolved });
+      } else {
+        applyTheme(get().resolvedTheme);
+      }
+
+      const mq = window.matchMedia("(prefers-color-scheme: dark)");
+      mq.addEventListener("change", () => {
+        const { theme } = get();
+        if (theme === "system") {
+          const resolved = getResolvedTheme("system");
+          applyTheme(resolved);
+          set({ resolvedTheme: resolved });
+        }
+      });
+
       set({ initialized: true });
     } catch (e) {
       set({ error: e instanceof Error ? e.message : "Initialization failed", initialized: true });
@@ -153,6 +204,17 @@ export const useAppStore = create<AppState>((set, get) => ({
     await get().loadConversations();
   },
 
+  updateConversation: async (id, data) => {
+    await api.chat.updateConversation(id, data);
+    await get().loadConversations();
+    const { activeConversation } = get();
+    if (activeConversation?.id === id) {
+      const convs = get().conversations;
+      const updated = convs.find((c) => c.id === id);
+      if (updated) set({ activeConversation: updated });
+    }
+  },
+
   sendMessage: async (content) => {
     const { activeConversation, chatMode, activeWorkspace, settings } = get();
     if (!activeConversation) return;
@@ -222,6 +284,36 @@ export const useAppStore = create<AppState>((set, get) => ({
     get().loadConversations();
   },
 
+  editMessage: async (messageId, content) => {
+    const { activeConversation } = get();
+    if (!activeConversation) return;
+
+    try {
+      await api.chat.editMessage(activeConversation.id, messageId, content);
+      const messages = await api.chat.messages(activeConversation.id);
+      set({ messages });
+    } catch (e) {
+      set({ error: e instanceof Error ? e.message : "Failed to edit message" });
+    }
+  },
+
+  regenerateLastResponse: async () => {
+    const { activeConversation, messages } = get();
+    if (!activeConversation) return;
+
+    try {
+      const result = await api.chat.regenerate(activeConversation.id);
+      if (result.last_user_message) {
+        const updatedMessages = messages.filter((m) => m.id !== result.deleted_message_id);
+        set({ messages: updatedMessages });
+        const lastUserContent = result.last_user_message.content;
+        await get().sendMessage(lastUserContent);
+      }
+    } catch (e) {
+      set({ error: e instanceof Error ? e.message : "Failed to regenerate" });
+    }
+  },
+
   setChatMode: (mode) => {
     set({ chatMode: mode });
     if (mode === "general") {
@@ -242,9 +334,27 @@ export const useAppStore = create<AppState>((set, get) => ({
   updateSettings: async (data) => {
     const settings = await api.settings.update(data);
     set({ settings });
+    if (data.theme) {
+      get().setTheme(data.theme);
+    }
+  },
+
+  setTheme: (theme) => {
+    const resolved = getResolvedTheme(theme);
+    applyTheme(resolved);
+    set({ theme, resolvedTheme: resolved });
   },
 
   toggleSidebar: () => set((s) => ({ sidebarOpen: !s.sidebarOpen })),
 
   clearError: () => set({ error: null }),
+
+  loadTemplates: async () => {
+    try {
+      const templates = await api.templates.list();
+      set({ templates });
+    } catch {
+      // Templates may not be available yet
+    }
+  },
 }));

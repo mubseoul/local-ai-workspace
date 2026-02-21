@@ -1,12 +1,14 @@
 import { useEffect, useState } from "react";
-import { Save, RefreshCw, CheckCircle2, Monitor } from "lucide-react";
+import { Save, RefreshCw, CheckCircle2, Monitor, Sun, Moon, Laptop } from "lucide-react";
 import { useAppStore } from "../store/appStore";
 import { useOllama } from "../hooks/useOllama";
-import type { AppSettings } from "../lib/types";
+import { useTheme } from "../hooks/useTheme";
+import type { AppSettings, Theme } from "../lib/types";
 
 export function SettingsPage() {
   const { settings, updateSettings, loadSettings } = useAppStore();
   const { models, isRunning, refresh } = useOllama();
+  const { theme, setTheme } = useTheme();
   const [local, setLocal] = useState<Partial<AppSettings>>({});
   const [saved, setSaved] = useState(false);
 
@@ -22,6 +24,12 @@ export function SettingsPage() {
 
   const chatModels = models.filter((m) => !m.name.includes("embed"));
   const embedModels = models.filter((m) => m.name.includes("embed"));
+
+  const themeOptions: { value: Theme; label: string; icon: React.ReactNode }[] = [
+    { value: "system", label: "System", icon: <Laptop size={16} /> },
+    { value: "light", label: "Light", icon: <Sun size={16} /> },
+    { value: "dark", label: "Dark", icon: <Moon size={16} /> },
+  ];
 
   return (
     <div className="flex-1 overflow-y-auto">
@@ -43,6 +51,29 @@ export function SettingsPage() {
             {saved ? "Saved!" : "Save"}
           </button>
         </div>
+
+        {/* Theme Selection */}
+        <section className="mb-8">
+          <h2 className="text-sm font-semibold text-surface-300 uppercase tracking-wider mb-4">
+            Appearance
+          </h2>
+          <div className="flex gap-3">
+            {themeOptions.map((opt) => (
+              <button
+                key={opt.value}
+                onClick={() => setTheme(opt.value)}
+                className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-lg border-2 text-sm transition-all ${
+                  theme === opt.value
+                    ? "border-accent bg-accent/10 text-accent-light"
+                    : "border-surface-700 bg-surface-800 text-surface-400 hover:border-surface-600 hover:text-surface-200"
+                }`}
+              >
+                {opt.icon}
+                {opt.label}
+              </button>
+            ))}
+          </div>
+        </section>
 
         {/* Ollama Status */}
         <section className="mb-8">
@@ -224,6 +255,30 @@ export function SettingsPage() {
             <p className="text-xs text-surface-500 mt-1">
               All data is stored locally at this path. Change requires restart.
             </p>
+          </div>
+        </section>
+
+        {/* Keyboard Shortcuts */}
+        <section className="mb-8">
+          <h2 className="text-sm font-semibold text-surface-300 uppercase tracking-wider mb-4">
+            Keyboard Shortcuts
+          </h2>
+          <div className="bg-surface-800 border border-surface-700 rounded-lg divide-y divide-surface-700">
+            {[
+              { keys: "⌘/Ctrl + N", desc: "New conversation" },
+              { keys: "⌘/Ctrl + K", desc: "Command palette" },
+              { keys: "⌘/Ctrl + Shift + S", desc: "Toggle sidebar" },
+              { keys: "⌘/Ctrl + /", desc: "Focus chat input" },
+              { keys: "Esc", desc: "Close modals" },
+              { keys: "⌘/Ctrl + ?", desc: "Shortcut help" },
+            ].map(({ keys, desc }) => (
+              <div key={keys} className="flex items-center justify-between px-4 py-2.5">
+                <span className="text-sm text-surface-300">{desc}</span>
+                <kbd className="text-xs font-mono text-surface-400 bg-surface-900 px-2 py-0.5 rounded border border-surface-700">
+                  {keys}
+                </kbd>
+              </div>
+            ))}
           </div>
         </section>
 
